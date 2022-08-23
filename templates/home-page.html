@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <title>Material Design Bootstrap</title>
+  <title>3StepShirt</title>
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
   <!-- Bootstrap core CSS -->
@@ -54,7 +54,7 @@
     <div class="container">
 
       <!-- Brand -->
-      <a class="navbar-brand waves-effect" href="https://mdbootstrap.com/docs/jquery/" target="_blank">
+      <a class="navbar-brand waves-effect" href="{% url 'home'%}">
         <strong class="blue-text">3StepShirt</strong>
       </a>
 
@@ -70,12 +70,12 @@
         <!-- Left -->
         <ul class="navbar-nav mr-auto">
           <li class="nav-item active">
-            <a class="nav-link waves-effect" href="#">Home
+            <a class="nav-link waves-effect" href="{% url 'home'%}">Home
               <span class="sr-only">(current)</span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link waves-effect" href="" target="_blank">About</a>
+            <a class="nav-link waves-effect" href="{% url 'about'%}">About</a>
           </li>
         </ul>
 
@@ -87,7 +87,6 @@
               <i class="fas fa-shopping-cart"></i>
               <span class="clearfix d-none d-sm-inline-block"> Cart </span>
             </a>
-            <a href="{{ object.get_add_to_cart_url }} "class="btn btn-primary btn-md my-0 p"> add to cart</a>
           </li>
         </ul>
 
@@ -95,7 +94,7 @@
 
     </div>
   </nav>
-  <!-- Navbar -->
+  <a href="{{ object.get_add_to_cart_url }} "class="btn btn-primary btn-md my-0 p"> add to cart</a>
 
   <!--Carousel Wrapper-->
   <div id="carousel-example-1z" class="carousel slide carousel-fade pt-4" data-ride="carousel">
@@ -132,7 +131,7 @@
                 <strong>Simply choose the details of the T-shirt(s) and apply your design specifications.</strong>
               </p>
 
-              <a target="_blank" href="" class="btn btn-outline-white btn-lg">Begin Here
+              <a href="{% url 'design' %}" class="btn btn-outline-white btn-lg">Begin Here
                 
               </a>
             </div>
@@ -171,7 +170,7 @@
 
         <!--Grid row-->
         <div class="row wow fadeIn">
-
+          {% for item in items %}
           <!--Grid column-->
           <div class="col-lg-3 col-md-6 mb-4">
 
@@ -192,12 +191,14 @@
               <div class="card-body text-center">
                 <!--Category & Title-->
                 
-                <h5>Shirt</h5>
+                <h5>{{ item.title }}</h5>
                 
                 <h5>
                   <strong>
                     
-                    <span class="badge badge-pill danger-color">NEW</span>
+                    <span class="badge badge-pill danger-color">${{ item.price }}</span>
+                    <span class="badge badge-pill danger-color">{{ item.get_design_display }}</span>
+                    <span class="badge badge-pill danger-color">{{ item.get_size_display }}</span>
                     
                   </strong>
                 </h5>
@@ -209,100 +210,8 @@
             <!--Card-->
 
           </div>
+          {% endfor %}
           <!--Grid column-->
-
-          <!--Grid column-->
-          <div class="col-lg-3 col-md-6 mb-4">
-
-            <!--Card-->
-            <div class="card">
-
-              <!--Card image-->
-              <div class="view overlay">
-                <img src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Vertical/13.jpg" class="card-img-top"
-                  alt="">
-                <a>
-                  <div class="mask rgba-white-slight"></div>
-                </a>
-              </div>
-              <!--Card image-->
-
-              <!--Card content-->
-              <div class="card-body text-center">
-                <!--Category & Title-->
-                
-                  <h5> Red Hoodie</h5>
-                
-              </div>
-              <!--Card content-->
-
-            </div>
-            <!--Card-->
-
-          </div>
-          <!--Grid column-->
-
-          <!--Grid column-->
-          <div class="col-lg-3 col-md-6 mb-4">
-
-            <!--Card-->
-            <div class="card">
-
-              <!--Card image-->
-              <div class="view overlay">
-                <img src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Vertical/14.jpg" class="card-img-top"
-                  alt="">
-                <a>
-                  <div class="mask rgba-white-slight"></div>
-                </a>
-              </div>
-              <!--Card image-->
-
-              <!--Card content-->
-              <div class="card-body text-center">
-                <!--Category & Title-->
-                
-                <h5>Grey Blouse</h5>
-
-              </div>
-              <!--Card content-->
-
-            </div>
-            <!--Card-->
-
-          </div>
-          <!--Grid column-->
-
-          <!--Fourth column-->
-          <div class="col-lg-3 col-md-6 mb-4">
-
-            <!--Card-->
-            <div class="card">
-
-              <!--Card image-->
-              <div class="view overlay">
-                <img src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Vertical/15.jpg" class="card-img-top"
-                  alt="">
-                <a>
-                  <div class="mask rgba-white-slight"></div>
-                </a>
-              </div>
-              <!--Card image-->
-
-              <!--Card content-->
-              <div class="card-body text-center">
-                <!--Category & Title-->
-                
-                <h5>Black Jacket</h5>
-                
-              </div>
-              <!--Card content-->
-
-            </div>
-            <!--Card-->
-
-          </div>
-          <!--Fourth column-->
 
         </div>
         <!--Grid row-->
