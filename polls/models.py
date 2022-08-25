@@ -37,8 +37,11 @@ class Item(models.Model):
     def __str__(self):
         return self.title
 
-    def get_add_to_cart(self):
-        return reverse("polls:add-to-cart")
+    def get_remove_from_cart_url(self):
+        print("tfd")
+        return reverse("add-to-cart", kwargs={
+            'value':self.title
+        })
 
 
 # class OrderItem(models.Model):
@@ -56,6 +59,7 @@ class Order(models.Model):
     start_date = models.DateTimeField(auto_now_add=True)
     ordered_date = models.DateTimeField()
     ordered = models.BooleanField(default=False)
+    quantity = models.IntegerField(default=0)
 
 
     def __str__(self):

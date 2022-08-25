@@ -1,10 +1,47 @@
+
+{% extends "base.html" %}
 {% block content %}
-<h2> Here is the list of items</h2>
+
+<h2 class = 'page-divider'> Here is the list of items</h2>
+
+<div class="table-responsive text-nowrap">
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Title</th>
+                <th scope="col">Price</th>
+                <th scope="col">Colour</th>
+                <th scope="col">Design</th>
+                <th scope="col">Size</th>
+                <th scope="col">Quanitity</th>
+                <th scope="col">Total Cost</th>
+                <th scope="col">Remove from Cart</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <th scope="row">1</th>
+                <td>{{ item.title }}</td>
+                <td>{{ item.price }}</td>
+                <td>{{ item.colour }}</td>
+                <td>{{ item.design }}</td>
+                <td>{{ item.size }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>???</td>
+                <td><form method="POST"><button type="submit" value="{{item.title}}" name="item" class="btn btn-primary btn-md my-0 p"> Remove</button>{% csrf_token %}</form></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+  </div>
 
 
-{% endblock content %}
-<!-- <a href="{{ object.get_add_to_cart_url }}" class="btn btn-primary btn-md my-6 p"> Checkout Cart</a> -->
 <form method ="POST"> 
     {% csrf_token %}
+
 <button type = 'submit' class="btn btn-primary btn-md my-6 p"> Checkout Cart</button>
 </form>
+
+{% endblock %}
