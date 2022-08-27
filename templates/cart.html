@@ -22,26 +22,37 @@
         <tbody>
             {% for item in order.items.all %}
             <tr>
-                <th scope="row">1</th>
+                <th scope="row">{{ forloop.counter}}</th>
                 <td>{{ item.title }}</td>
                 <td>{{ item.price }}</td>
-                <td>{{ item.colour }}</td>
-                <td>{{ item.design }}</td>
-                <td>{{ item.size }}</td>
+                <td>{{ item.get_colour_display }}</td>
+                <td>{{ item.get_design_display }}</td>
+                <td>{{ item.get_size_display }}</td>
                 <td>{{ item.quantity }}</td>
-                <td>???</td>
+                <td> ${{ item.get_total_price }}</td>
                 <td><form method="POST"><button type="submit" value="{{item.title}}" name="item" class="btn btn-primary btn-md my-0 p"> Remove</button>{% csrf_token %}</form></td>
             </tr>
             {% endfor %}
+            <tr>
+                <td colspan='7'><b> Order Total</b></td>
+                <td> <b>${{order.get_total_price}}</b></td>
+            </tr>
+            <form method ="POST"> 
+                {% csrf_token %}
+            <tr>
+                <td colspan='6'>
+                      {% if order.get_total_price %}
+                        <button type = 'submit' class="float-right btn btn-warning " value="checkout" name="checkout"> Proceed to Checkout</button>
+                        {%endif%}  
+                        <a href = '../design' class="float-right btn btn-primary "> Return to Designing </a>
+                </td>
+            </tr>
+        </form>
+             
         </tbody>
     </table>
   </div>
 
 
-<form method ="POST"> 
-    {% csrf_token %}
-
-<button type = 'submit' class="btn btn-primary btn-md my-6 p"> Checkout Cart</button>
-</form>
 
 {% endblock %}

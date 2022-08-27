@@ -23,6 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-23(&ae3e+$f61ur2c0)zvkll6@xg1)k6&k415n4-a9wu2*5a2*'
+STRIPE_SECRET_KEY = ''
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -44,6 +45,9 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'crispy_forms',
+    'django_countries',
+    'stripe',
 
     'polls',
 ]
@@ -141,3 +145,4 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 SITE_ID = 1
+LOGIN_REDIRECT_URL = '/'
