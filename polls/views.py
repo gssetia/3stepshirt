@@ -3,17 +3,21 @@ Views
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from .models import Item, Order, BillingAddress, Payment
-from .forms import ItemForm, CheckoutForm
+from .models import Item, Order, BillingAddress, Payment, Refund
+from .forms import ItemForm, CheckoutForm, RefundForm
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.conf import settings
 
 import stripe
+import random
+import string
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+stripe.api_key = 'sk_test_51LbTxzAWEaHH0GhFqU9gwCoYzbVaCUjDSMXNT4wUCCLD7ooXEEH4WLflukGR6mmdyvKiK9iS76331gUAa9QGo6Sy00YNNvSvxR'
 
+def create_ref_code():
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=20))
 
 def about(request):
     context = {
@@ -26,10 +30,15 @@ def checkout(request):
     if request.method == "POST":
         form = CheckoutForm(request.POST)
         try:
-            order = Order.objects.get(user = request.user)
+            order = Order.objects.get(user = request.user, ordered=False)
             if form.is_valid():
                 obj = form.cleaned_data
                 payment_option = obj.get('payment_option')
+                prev_ba = BillingAddress.objects.filter(user = request.user)
+
+                if prev_ba:
+                    order.billing_address = prev_ba[0]
+
                 if order.billing_address:
                     order.billing_address.street_address = obj.get('street_address')
                     order.billing_address.apartment_address = obj.get('apartment_address')
@@ -64,7 +73,13 @@ def checkout(request):
             return redirect("../cart")
 
     form = CheckoutForm()
-    return render(request, 'checkout.html', {"form":form})
+    order = Order.objects.get(user=request.user, ordered=False)
+    context = {
+        'order':order,
+        'items':Item.objects.all(),
+        'form':form,
+    }
+    return render(request, 'checkout.html', context)
 
 
 def payment(request, payment_option):
@@ -90,6 +105,7 @@ def payment(request, payment_option):
 
             order.ordered = True
             order.payment = payment
+            order.ref_code = create_ref_code()
             order.save()
             messages.success(request, "Your order was successful.")
             return redirect('/')
@@ -130,10 +146,6 @@ def payment(request, payment_option):
             return redirect('/')
 
 
-
-        
-
-
     order = Order.objects.get(user=request.user, ordered=False)
     context = {
         'order':order,
@@ -145,7 +157,7 @@ def payment(request, payment_option):
 def cart(request):
     try:
 
-        order = Order.objects.get(user = request.user)
+        order = Order.objects.get(user = request.user, ordered=False)
         context = {
             'order':order,
         }
@@ -166,7 +178,6 @@ def cart(request):
         return render(request, 'cart.html', context)
 
     except ObjectDoesNotExist:
-        messages.info(request, "You do not have anything in your cart.")
         messages.error(request, "You do not have anything in your cart.")
         return redirect("/")
 
@@ -179,10 +190,17 @@ def design(request):
         print(form.data)
 
         if form.is_valid():
-            obj = form.save(commit=False)
-            obj.price = 100
-            obj.user = request.user
-            obj.save()
+            item = Item()
+            obj = form.cleaned_data
+
+            item.title = obj.get('title')
+            item.size = obj.get('size')
+            item.design = obj.get('design')
+            item.quantity = obj.get('quantity')
+            item.colour = obj.get('colour')
+            item.price = 100
+            item.user = request.user
+            item.save()
 
             order_list = Order.objects.filter(user=request.user, ordered=False)
             if order_list.exists():
@@ -192,38 +210,76 @@ def design(request):
                 ordered_date = timezone.now()
                 order = Order.objects.create(user=request.user, ordered_date=ordered_date)
                     
-            item_list = Item.objects.filter(user=request.user)
-            for item in item_list:
-                if item not in order.items.all():
-                    #print(item, type(item))
-                    messages.info(request, "This item was added to your cart.")
-                    order.items.add(item)
-                    order.quantity += item.quantity
+
+            order.items.add(item)
+            order.quantity += item.quantity
+
+            messages.info(request, "This item was added to your cart.")
             order.save()
 
             return redirect("/design")
 
     else:
         form = ItemForm()
-    
-    return render(request, 'design.html', {"form":form})
+
+    items = Item.objects.filter(user=request.user)
+    context = {
+        'items':items,
+        'form':form
+    }
+    return render(request, 'design.html', context)
 
 def home(request):
-    context = {
-        'items':Item.objects.all(),
-    }
-    return render(request, 'home-page.html', context)
+
+    return render(request, 'home-page.html')
+
 
 @login_required
-def remove_from_cart(request):  
-    print(request.GET.get)
-    #<a href="{{ object.get_remove_from_cart_url }}" class="btn btn-primary btn-md my-6 p"> remove from Cart</a>
+def profile(request):  
+    order = Order.objects.filter(user=request.user)
+    context = {
+        'order':order,
+    }
+    return render(request, 'profile.html', context)
 
-    return redirect("/cart")
-    #return redirect("../")
 
-def get_remove_from_cart_url(request):
-    print("test")
-    return reverse("add-to-cart", kwargs={
-        'value':self.title
-    })
+@login_required
+def refund(request):  
+
+    if request.method == "POST":
+        form = RefundForm(request.POST)
+
+        if form.is_valid():
+            ref_code = form.cleaned_data.get('ref_code')
+            message = form.cleaned_data.get('message')
+
+            try:
+                order = Order.objects.get(ref_code = ref_code)
+                
+            except ObjectDoesNotExist:
+                messages.error(request, "You do not have a valid order.")
+                return redirect("/")
+
+            if order.ordered and not order.delivering:
+
+                order.refund = True
+                order.save()
+                refund = Refund()
+                refund.order = order
+                refund.reason = message
+                refund.ref_code = ref_code 
+                refund.user = request.user
+                refund.save()
+
+            elif order.delivered:
+                messages.error(request, "Cancellation error: Your order has already been delivered.")
+                return redirect("/")
+            else: 
+                messages.error(request, "Cancellation error: Your order is already being delivered.")
+                return redirect("/")
+
+    order = Order.objects.filter(user=request.user, ordered = False)
+    context = {
+        'order':order,
+    }
+    return render(request, 'home-page.html', context)

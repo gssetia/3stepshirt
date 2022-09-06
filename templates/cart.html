@@ -2,6 +2,7 @@
 {% extends "base.html" %}
 {% block content %}
 
+
 <h2 class = 'page-divider'> Here is the list of items</h2>
 
 <div class="table-responsive text-nowrap">
@@ -21,6 +22,7 @@
         </thead>
         <tbody>
             {% for item in order.items.all %}
+            <div style="color: {{item.get_colour_display }};"> ALLO</div>
             <tr>
                 <th scope="row">{{ forloop.counter}}</th>
                 <td>{{ item.title }}</td>

@@ -18,7 +18,6 @@ DESIGN_CHOICES = (
     ('TRS', 'Top right small'),
     ('CF', 'Centre front'),
     ('CB', 'Centre back'),
-    ('FB', 'Front and back'),
 )
 
 COLOUR_CHOICES = (
@@ -41,8 +40,8 @@ class Item(models.Model):
     size = models.CharField(choices=SIZE_CHOICES, max_length=2)
     design = models.CharField(choices=DESIGN_CHOICES, max_length=3)
     colour = models.CharField(choices=COLOUR_CHOICES, max_length=3)
-    
     quantity = models.IntegerField(default=1, validators=[validate_quantity])
+    image = models.ImageField(blank=True, null=True)
 
     def __str__(self):
         return self.title
@@ -59,12 +58,27 @@ class Order(models.Model):
     ordered = models.BooleanField(default=False)
     quantity = models.IntegerField(default=0)
     billing_address = models.ForeignKey('BillingAddress', on_delete=models.SET_NULL, blank=True, null=True)
-    payment = models.ForeignKey(
-        'Payment', on_delete=models.SET_NULL, blank=True, null=True)
+    payment = models.ForeignKey('Payment', on_delete=models.SET_NULL, blank=True, null=True)
+    delivering = models.BooleanField(default=False)
+    delivered = models.BooleanField(default=False)
+    refunded = models.BooleanField(default=False)
+    checkout_failure = models.CharField(max_length=30)
+    ref_code = models.CharField(max_length=20)
+
+    """
+    1. Add to cart -> order object exists
+    2. Add a Billing Address -> billing_address exists
+    3. Submit payment -> payment exists
+    (Failed Checkout) -> send error to checkout_failure
+    4. Processing -> ordered = True
+    5. Delivering -> delivering = True
+    6. Delivered -> delivered = True
+    7. Refunds -> refunded = True
+    """
 
 
     def __str__(self):
-        return self.user.get_username() + "'s order with " + str(self.quantity) + " shirts."
+        return self.user.username + "'s order with " + str(self.quantity) + " shirts."
 
     def get_total_price(self):
         total = 0
@@ -89,5 +103,14 @@ class Payment(models.Model):
     amount = models.FloatField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    def __str__():
-        return user.username + "'s " + amount + " order."
+    def __str__(self):
+        return self.user.username + "'s $" + str(self.amount) + " order."
+
+class Refund(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, blank=True, null=True)
+    message = models.CharField(max_length=50)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    ref_code = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"{self.pk}"
